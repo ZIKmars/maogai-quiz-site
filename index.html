@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>毛概 PDF 题库练习（含解析）</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="mast">
+        <div>
+          <p class="eyebrow">23版毛概题库 PDF 提取版 · 含解析</p>
+          <h1>毛概 PDF 题库练习</h1>
+        </div>
+        <div class="totals" aria-label="题库统计">
+          <span id="totalCount">70 题</span>
+          <span id="singleCount">单选 40</span>
+          <span id="multipleCount">多选 30</span>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <aside class="panel controls" aria-label="练习设置">
+          <label class="field">
+            <span>题型</span>
+            <select id="typeFilter">
+              <option value="all">全部题型</option>
+              <option value="single">只练单选</option>
+              <option value="multiple">只练多选</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>章节</span>
+            <select id="chapterFilter">
+              <option value="all">全部章节</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>题量</span>
+            <select id="limitSelect">
+              <option value="all">全部</option>
+              <option value="20">20 题</option>
+              <option value="30">30 题</option>
+              <option value="50">50 题</option>
+            </select>
+          </label>
+
+          <label class="toggle">
+            <input id="shuffleToggle" type="checkbox" checked>
+            <span>随机顺序</span>
+          </label>
+
+          <div class="buttonStack">
+            <button id="startBtn" class="primary" type="button">开始练习</button>
+            <button id="wrongBtn" type="button" disabled>再练错题</button>
+            <button id="resetBtn" type="button">重置</button>
+          </div>
+
+          <div class="miniStats">
+            <div>
+              <strong id="doneCount">0</strong>
+              <span>已答</span>
+            </div>
+            <div>
+              <strong id="rightCount">0</strong>
+              <span>正确</span>
+            </div>
+            <div>
+              <strong id="scoreRate">0%</strong>
+              <span>得分率</span>
+            </div>
+          </div>
+        </aside>
+
+        <section class="panel quiz" aria-live="polite">
+          <div class="quizTop">
+            <div>
+              <p id="progressText" class="progressText">准备开始</p>
+              <div id="tagRow" class="tagRow"></div>
+            </div>
+            <div class="progressTrack" aria-hidden="true">
+              <span id="progressBar"></span>
+            </div>
+          </div>
+
+          <article id="questionView" class="questionView">
+            <p class="emptyState">选择题型和章节后开始练习。</p>
+          </article>
+
+          <div id="actions" class="actions" hidden>
+            <button id="submitBtn" class="primary" type="button">提交答案</button>
+            <button id="nextBtn" type="button" hidden>下一题</button>
+            <button id="finishBtn" type="button">完成练习</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="summary" class="summary panel" hidden></section>
+    </main>
+
+    <script src="./questions.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
