@@ -305,6 +305,16 @@ select {
   background: rgba(173, 47, 43, 0.1);
 }
 
+.memoryPrompt {
+  min-height: 86px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 18px;
+  color: var(--muted);
+  background: rgba(255, 250, 240, 0.68);
+  line-height: 1.6;
+}
+
 .explain {
   margin-top: 18px;
   border-left: 4px solid var(--teal);

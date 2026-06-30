@@ -12,6 +12,7 @@ const el = {
   totalCount: document.querySelector("#totalCount"),
   singleCount: document.querySelector("#singleCount"),
   multipleCount: document.querySelector("#multipleCount"),
+  memoryCount: document.querySelector("#memoryCount"),
   typeFilter: document.querySelector("#typeFilter"),
   chapterFilter: document.querySelector("#chapterFilter"),
   limitSelect: document.querySelector("#limitSelect"),
@@ -36,9 +37,11 @@ const el = {
 function init() {
   const single = QUESTION_BANK.filter((q) => q.type === "single").length;
   const multiple = QUESTION_BANK.filter((q) => q.type === "multiple").length;
+  const memory = QUESTION_BANK.filter((q) => q.type === "memory").length;
   el.totalCount.textContent = `${QUESTION_BANK.length} 题`;
   el.singleCount.textContent = `单选 ${single}`;
   el.multipleCount.textContent = `多选 ${multiple}`;
+  el.memoryCount.textContent = `历年卷 ${memory}`;
 
   const chapters = [...new Set(QUESTION_BANK.map((q) => q.chapter))];
   chapters.forEach((chapter) => {
@@ -122,36 +125,9 @@ function renderQuestion() {
   el.progressText.textContent = `第 ${state.index + 1} / ${state.pool.length} 题`;
   el.progressBar.style.width = `${((state.index + 1) / state.pool.length) * 100}%`;
   el.tagRow.replaceChildren(
-    tag(question.type === "single" ? "单选" : "多选"),
+    tag(typeLabel(question)),
     tag(question.chapter)
   );
-
-  const form = document.createElement("form");
-  form.className = "options";
-  form.addEventListener("change", onChoiceChange);
-
-  question.options.forEach((option, i) => {
-    const label = document.createElement("label");
-    label.className = "option";
-    if (record) {
-      if (question.answer.includes(i)) label.classList.add("correct");
-      if (record.selected.includes(i) && !question.answer.includes(i)) label.classList.add("wrong");
-    }
-
-    const input = document.createElement("input");
-    input.type = question.type === "single" ? "radio" : "checkbox";
-    input.name = "choice";
-    input.value = String(i);
-    input.checked = state.selected.has(i);
-    input.disabled = Boolean(record);
-
-    const text = document.createElement("span");
-    text.className = "optionText";
-    text.textContent = `${LETTERS[i]}. ${option}`;
-
-    label.append(input, text);
-    form.append(label);
-  });
 
   const stem = document.createElement("h2");
   stem.className = "questionStem";
@@ -161,7 +137,43 @@ function renderQuestion() {
   source.className = "sourceLine";
   source.textContent = `来源：${question.source}`;
 
-  el.questionView.replaceChildren(stem, source, form);
+  if (question.type === "memory") {
+    const prompt = document.createElement("div");
+    prompt.className = "memoryPrompt";
+    prompt.textContent = "回忆题：先默答，再查看参考答案。";
+    el.questionView.replaceChildren(stem, source, prompt);
+    el.submitBtn.textContent = "查看答案";
+  } else {
+    const form = document.createElement("form");
+    form.className = "options";
+    form.addEventListener("change", onChoiceChange);
+
+    question.options.forEach((option, i) => {
+      const label = document.createElement("label");
+      label.className = "option";
+      if (record) {
+        if (question.answer.includes(i)) label.classList.add("correct");
+        if (record.selected.includes(i) && !question.answer.includes(i)) label.classList.add("wrong");
+      }
+
+      const input = document.createElement("input");
+      input.type = question.type === "single" ? "radio" : "checkbox";
+      input.name = "choice";
+      input.value = String(i);
+      input.checked = state.selected.has(i);
+      input.disabled = Boolean(record);
+
+      const text = document.createElement("span");
+      text.className = "optionText";
+      text.textContent = `${LETTERS[i]}. ${option}`;
+
+      label.append(input, text);
+      form.append(label);
+    });
+
+    el.questionView.replaceChildren(stem, source, form);
+    el.submitBtn.textContent = "提交答案";
+  }
 
   if (record) {
     el.questionView.append(renderExplain(question, record.correct));
@@ -186,6 +198,12 @@ function onChoiceChange(event) {
 
 function submitAnswer() {
   const question = currentQuestion();
+  if (question && question.type === "memory") {
+    state.answered.set(question.id, { selected: [], correct: true, revealed: true });
+    renderQuestion();
+    updateStats();
+    return;
+  }
   if (!question || !state.selected.size) {
     pulse(el.submitBtn);
     return;
@@ -222,8 +240,8 @@ function finishPractice() {
   grid.className = "resultGrid";
   grid.append(
     metric(total, "本轮题数"),
-    metric(answeredCount, "已提交"),
-    metric(correctCount, "答对"),
+    metric(answeredCount, "已提交/已看"),
+    metric(correctCount, "答对/已看"),
     metric(`${total ? Math.round((correctCount / total) * 100) : 0}%`, "总得分率")
   );
 
@@ -232,8 +250,8 @@ function finishPractice() {
 
   const note = document.createElement("p");
   note.textContent = wrongQuestions.length
-    ? "未答或答错的题目如下。多选题按考试规则计算，少选、多选、错选均不得分。"
-    : "本轮题目都答对了，可以切换章节继续抽练。";
+    ? "未答、未看或答错的题目如下。多选题按考试规则计算，少选、多选、错选均不得分。"
+    : "本轮题目都完成了，可以切换章节继续抽练。";
 
   el.summary.replaceChildren(title, grid, note);
   if (wrongQuestions.length) {
@@ -247,6 +265,10 @@ function finishPractice() {
 function renderExplain(question, correct) {
   const box = document.createElement("div");
   box.className = "explain";
+  if (question.type === "memory") {
+    box.innerHTML = `<strong>参考答案</strong><br>${escapeHtml(question.answerText || "")}<br>${escapeHtml(question.explanation)}`;
+    return box;
+  }
   const answerText = question.answer.map((i) => LETTERS[i]).join("、");
   box.innerHTML = `<strong>${correct ? "回答正确" : "回答错误"}</strong><br>正确答案：${answerText}<br>${escapeHtml(question.explanation)}`;
   return box;
@@ -259,12 +281,22 @@ function renderReviewList(questions) {
     const record = state.answered.get(question.id);
     const item = document.createElement("article");
     item.className = "reviewItem";
+    if (question.type === "memory") {
+      item.innerHTML = `
+        <p class="reviewMeta">${typeLabel(question)} · ${escapeHtml(question.chapter)}</p>
+        <p><strong>${escapeHtml(question.prompt)}</strong></p>
+        <p>参考答案：${escapeHtml(question.answerText || "")}</p>
+        <p>${escapeHtml(question.explanation)}</p>
+      `;
+      list.append(item);
+      return;
+    }
     const selected = record && record.selected.length
       ? record.selected.map((i) => LETTERS[i]).join("、")
       : "未答";
     const answer = question.answer.map((i) => LETTERS[i]).join("、");
     item.innerHTML = `
-      <p class="reviewMeta">${question.type === "single" ? "单选" : "多选"} · ${escapeHtml(question.chapter)}</p>
+      <p class="reviewMeta">${typeLabel(question)} · ${escapeHtml(question.chapter)}</p>
       <p><strong>${escapeHtml(question.prompt)}</strong></p>
       <p>你的答案：${selected}；正确答案：${answer}</p>
       <p>${escapeHtml(question.explanation)}</p>
@@ -297,6 +329,12 @@ function currentQuestion() {
 
 function sameAnswer(a, b) {
   return a.length === b.length && a.every((value, i) => value === b[i]);
+}
+
+function typeLabel(question) {
+  if (question.type === "single") return "单选";
+  if (question.type === "multiple") return "多选";
+  return question.memoryType || "历年卷";
 }
 
 function tag(text) {

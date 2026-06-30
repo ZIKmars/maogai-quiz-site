@@ -3,20 +3,21 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>毛概 PDF 题库练习（含解析）</title>
+    <title>毛概 PDF 题库练习（含历年卷）</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <main class="shell">
       <section class="mast">
         <div>
-          <p class="eyebrow">23版毛概题库 PDF 提取版 · 含解析</p>
+          <p class="eyebrow">23版毛概题库 + 历年卷 PDF 提取版 · 含解析</p>
           <h1>毛概 PDF 题库练习</h1>
         </div>
         <div class="totals" aria-label="题库统计">
           <span id="totalCount">70 题</span>
           <span id="singleCount">单选 40</span>
           <span id="multipleCount">多选 30</span>
+          <span id="memoryCount">历年卷 0</span>
         </div>
       </section>
 
@@ -28,6 +29,7 @@
               <option value="all">全部题型</option>
               <option value="single">只练单选</option>
               <option value="multiple">只练多选</option>
+              <option value="memory">历年卷回忆题</option>
             </select>
           </label>
 
@@ -66,7 +68,7 @@
             </div>
             <div>
               <strong id="rightCount">0</strong>
-              <span>正确</span>
+              <span>正确/已看</span>
             </div>
             <div>
               <strong id="scoreRate">0%</strong>
